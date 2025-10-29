@@ -21,6 +21,8 @@ class _RegistroState extends State<Registro> {
   bool aceptoTerminos = false;
   File? _imagenPerfil;
   bool emailValido = false;
+  bool nameValido = false;
+  bool phoneValido = false;
   String seguridadPass = 'Devil';
 
   void limpiarFormulario() {
@@ -36,6 +38,37 @@ class _RegistroState extends State<Registro> {
 
   bool validadEmail(String email) {
     return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
+  }
+
+  bool validarNombre(String name) {
+    return RegExp(r"^[A-Za-zÁÉÍÓÚÑáéíóúñ\s]{2,}$").hasMatch(name);
+  }
+
+  bool validarTelefono(String phone) {
+    return RegExp(r'^\d{10}$').hasMatch(phone);
+  }
+
+  String evaluarSeguridad(String pass) {
+    if (pass.length < 6) return 'Débil';
+    if (pass.length < 10) return 'Media';
+    if (RegExp(
+      r'(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])',
+    ).hasMatch(pass)) {
+      return 'Fuerte';
+    }
+    return 'Media';
+  }
+
+  double valorSeguridad(String pass) {
+    if (pass.length < 6) return 0.33; // Débil
+    if (pass.length < 10) return 0.66; // Media
+    return 1.0; // Fuerte
+  }
+
+  Color colorSeguridad(String pass) {
+    if (pass.length < 6) return Colors.red;
+    if (pass.length < 10) return Colors.orange;
+    return Colors.green;
   }
 
   Future<void> seleccionarImagen() async {
@@ -174,8 +207,8 @@ class _RegistroState extends State<Registro> {
             const SizedBox(height: 50),
 
             Container(
-              width: 300,
-              height: 465,
+              width: 320,
+              height: 480,
               padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.black, width: 2),
@@ -189,7 +222,7 @@ class _RegistroState extends State<Registro> {
                   children: [
                     TextFormField(
                       controller: nombreController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.all(Radius.circular(15)),
                         ),
@@ -198,15 +231,32 @@ class _RegistroState extends State<Registro> {
                         ),
                         labelText: 'Ingresa tu nombre',
                         labelStyle: TextStyle(color: Colors.black),
+                        suffixIcon: nameValido
+                            ? const Icon(
+                                Icons.check_circle_outlined,
+                                color: Colors.green,
+                              )
+                            : const Icon(
+                                Icons.cancel_outlined,
+                                color: Colors.red,
+                              ),
                       ),
+
+                      onChanged: (value) {
+                        setState(() {
+                          nameValido = validarNombre(value);
+                        });
+                      },
+
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Por favor ingresa tu nombre';
                         }
+
                         if (!RegExp(
                           r"^[A-Za-zÁÉÍÓÚÑáéíóúñ\s]{2,}$",
                         ).hasMatch(value)) {
-                          return 'Nombre no válido (solo letras y espacios)';
+                          return 'El nombre solo debe de contener letras y espacios';
                         }
                         return null;
                       },
@@ -214,7 +264,7 @@ class _RegistroState extends State<Registro> {
                     const SizedBox(height: 20),
                     TextFormField(
                       controller: emailController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.all(Radius.circular(15)),
                         ),
@@ -223,7 +273,23 @@ class _RegistroState extends State<Registro> {
                         ),
                         labelText: 'Ingresa tu email',
                         labelStyle: TextStyle(color: Colors.black),
+                        suffixIcon: emailValido
+                            ? const Icon(
+                                Icons.check_circle_outlined,
+                                color: Colors.green,
+                              )
+                            : const Icon(
+                                Icons.cancel_outlined,
+                                color: Colors.red,
+                              ),
                       ),
+
+                      onChanged: (value) {
+                        setState(() {
+                          emailValido = validadEmail(value);
+                        });
+                      },
+
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Por favor ingresa tu email';
@@ -233,13 +299,17 @@ class _RegistroState extends State<Registro> {
                         ).hasMatch(value)) {
                           return 'Por favor ingresa un email con formato valido';
                         }
+
+                        if (!validadEmail(value)) {
+                          return 'Por favor ingresa un email con formato válido';
+                        }
                         return null;
                       },
                     ),
                     const SizedBox(height: 20),
                     TextFormField(
                       controller: telefonoController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.all(Radius.circular(15)),
                         ),
@@ -248,7 +318,23 @@ class _RegistroState extends State<Registro> {
                         ),
                         labelText: 'Ingresa tu teléfono',
                         labelStyle: TextStyle(color: Colors.black),
+                        suffixIcon: phoneValido
+                            ? const Icon(
+                                Icons.check_circle_outlined,
+                                color: Colors.green,
+                              )
+                            : const Icon(
+                                Icons.cancel_outlined,
+                                color: Colors.red,
+                              ),
                       ),
+
+                      onChanged: (value) {
+                        setState(() {
+                          phoneValido = validarTelefono(value);
+                        });
+                      },
+
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Por favor ingresa tu teléfono';
@@ -272,20 +358,41 @@ class _RegistroState extends State<Registro> {
                         labelText: 'Ingresa tu contraseña',
                         labelStyle: TextStyle(color: Colors.black),
                       ),
+
+                      onChanged: (value) {
+                        setState(() {
+                          seguridadPass = evaluarSeguridad(value);
+                        });
+                      },
                       obscureText: true,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Por favor ingresa tu contraseña';
                         }
                         if (!RegExp(
-                          r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{10,}$',
+                          r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@$!%*?&])[A-Za-z\d$@$!%*?&]{8,15}$',
                         ).hasMatch(value)) {
-                          return 'Debe tener al menos 10 caracteres, una letra y un número';
+                          return 'Debe tener al menos 8 caracteres, una letra, un número y un carácter especial';
                         }
 
                         return null;
                       },
                     ),
+
+                    const SizedBox(height: 10),
+
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(
+                        16,
+                      ), // Bordes redondeados
+                      child: LinearProgressIndicator(
+                        value: valorSeguridad(passController.text),
+                        color: colorSeguridad(passController.text),
+                        backgroundColor: Colors.grey[200],
+                        minHeight: 8,
+                      ),
+                    ),
+
                     const SizedBox(height: 20),
                     TextFormField(
                       controller: confirmarPasswordController,

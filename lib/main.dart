@@ -71,14 +71,14 @@ class _MyHomePageState extends State<MyHomePage> {
                     children: [
                       ListTile(
                         leading: const Icon(Icons.home, color: Colors.pink),
-                        title: const Text('Inicio'),
+                        title: const Text('Home', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18)),
                         onTap: () {
                           Navigator.of(context).pop(); // cierra el Drawer
                         },
                       ),
                       ListTile(
                         leading: const Icon(Icons.badge, color: Colors.pink),
-                        title: const Text('Datos Adicionales'),
+                        title: const Text('Additional Data', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18)),
                         onTap: () {
                           Navigator.push(
                             context,
@@ -93,7 +93,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           Icons.phone_android,
                           color: Colors.pink,
                         ),
-                        title: const Text('Contáctanos'),
+                        title: const Text('Contac us', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18)),
                         onTap: () {
                           Navigator.of(context).pop();
                         },
@@ -106,7 +106,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           Icons.app_registration_outlined,
                           color: Colors.pink,
                         ),
-                        title: const Text('Registrate'),
+                        title: const Text('Sign in', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18)),
                         onTap: () {
                           Navigator.push(
                             context,

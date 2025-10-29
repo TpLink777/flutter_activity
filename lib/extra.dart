@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'main.dart';
 
 class ExtraData extends StatefulWidget {
   const ExtraData({super.key});
@@ -8,7 +9,6 @@ class ExtraData extends StatefulWidget {
 }
 
 class _ExtraDataState extends State<ExtraData> {
-
   final _formKey = GlobalKey<FormState>();
   final TextEditingController direccionController = TextEditingController();
   String? ciudadSeleccionada;
@@ -21,8 +21,14 @@ class _ExtraDataState extends State<ExtraData> {
     'El Poblado',
   ];
 
-  final List<String> metodos = ['Tarjeta', 'PayPal', 'Contra entrega'];
+  void limpiarFormulario() {
+    direccionController.clear();
+    ciudadSeleccionada = null;
+    metodoPago = null;
+    setState(() {});
+  }
 
+  final List<String> metodos = ['Card', 'PayPal', 'Cash on delivery'];
 
   void enviarFormulario() {
     if (_formKey.currentState!.validate()) {
@@ -46,7 +52,6 @@ class _ExtraDataState extends State<ExtraData> {
         return;
       }
 
-
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -54,7 +59,7 @@ class _ExtraDataState extends State<ExtraData> {
             borderRadius: BorderRadius.circular(15),
           ),
           title: const Text(
-            'Resumen de Envío',
+            'Shipping Summary',
             textAlign: TextAlign.center,
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
@@ -62,15 +67,21 @@ class _ExtraDataState extends State<ExtraData> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Dirección: ${direccionController.text}'),
-              Text('Ciudad: $ciudadSeleccionada'),
-              Text('Método de pago: $metodoPago'),
+              Text('Address: ${direccionController.text}'),
+              Text('City: $ciudadSeleccionada'),
+              Text('payment method: $metodoPago'),
             ],
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Aceptar'),
+              onPressed: () => {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const MyApp()),
+                ),
+                limpiarFormulario(),
+              },
+              child: const Text('Accept'),
             ),
           ],
         ),
@@ -82,95 +93,124 @@ class _ExtraDataState extends State<ExtraData> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Formulario de Envío', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 22)),
+        title: const Text(
+          'Formulario de Envío',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 22,
+          ),
+        ),
         backgroundColor: Colors.pink,
         centerTitle: true,
         iconTheme: IconThemeData(color: Colors.white),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          child: ListView(
-            children: [
-              // Dirección
-              TextFormField(
-                controller: direccionController,
-                decoration: const InputDecoration(
-                  labelText: 'Dirección',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor ingresa tu dirección';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 20),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
 
-              // Ciudad Dropdown
-              DropdownButtonFormField<String>(
-                value: ciudadSeleccionada,
-                decoration: const InputDecoration(
-                  labelText: 'Ciudad',
-                  border: OutlineInputBorder(),
-                ),
-                items: ciudades
-                    .map(
-                      (ciudad) =>
-                          DropdownMenuItem(value: ciudad, child: Text(ciudad)),
-                    )
-                    .toList(),
-                onChanged: (value) {
-                  setState(() {
-                    ciudadSeleccionada = value;
-                  });
-                },
-                validator: (value) {
-                  if (value == null) {
-                    return 'Por favor selecciona una ciudad';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 20),
-
-              // Método de pago RadioListTile
-              const Text(
-                'Método de pago',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              ...metodos.map(
-                (metodo) => RadioListTile<String>(
-                  title: Text(metodo),
-                  value: metodo,
-                  groupValue: metodoPago,
-                  onChanged: (value) {
-                    setState(() {
-                      metodoPago = value;
-                    });
-                  },
-                ),
+              width: 300,
+              height: 450,
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.black, width: 2),
+                borderRadius: BorderRadius.circular(12),
               ),
 
-              const SizedBox(height: 20),
+              child: Form(
+                key: _formKey,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                child: ListView(
+                  children: [
+                    // Dirección
+                    TextFormField(
+                      controller: direccionController,
+                      decoration: const InputDecoration(
+                        labelText: 'Address',
+                        labelStyle: TextStyle(color: Colors.black),
+                        border: OutlineInputBorder(),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Por favor ingresa tu dirección';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 20),
 
-              // Botón enviar
-              ElevatedButton(
-                onPressed: enviarFormulario,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.pink,
-                  padding: const EdgeInsets.symmetric(vertical: 15),
-                ),
-                child: const Text(
-                  'Enviar',
-                  style: TextStyle(fontSize: 18, color: Colors.white),
+                    // Ciudad Dropdown
+                    DropdownButtonFormField<String>(
+                      initialValue: ciudadSeleccionada,
+                      decoration: const InputDecoration(
+                        labelText: 'City',
+                        labelStyle: TextStyle(color: Colors.black),
+                        border: OutlineInputBorder(),
+                      ),
+                      items: ciudades
+                          .map(
+                            (ciudad) => DropdownMenuItem(
+                              value: ciudad,
+                              child: Text(ciudad),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          ciudadSeleccionada = value;
+                        });
+                      },
+                      validator: (value) {
+                        if (value == null) {
+                          return 'Por favor selecciona una ciudad';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Método de pago RadioListTile
+                    const Text(
+                      'Payment Method',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    ...metodos.map(
+                      (metodo) => RadioListTile<String>(
+                        title: Text(metodo),
+                        value: metodo,
+                        groupValue: metodoPago,
+                        onChanged: (value) {
+                          setState(() {
+                            metodoPago = value;
+                          });
+                        },
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // Botón enviar
+                    ElevatedButton(
+                      onPressed: enviarFormulario,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.pink,
+                        padding: const EdgeInsets.symmetric(vertical: 15),
+                      ),
+                      child: const Text(
+                        'Accept',
+                        style: TextStyle(fontSize: 18, color: Colors.white),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
