@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'registrate.dart';
 import 'extra.dart';
+import 'contactanos.dart';
 
 void main() {
   runApp(const MyApp());
@@ -70,15 +71,27 @@ class _MyHomePageState extends State<MyHomePage> {
                     padding: EdgeInsets.zero,
                     children: [
                       ListTile(
-                        leading: const Icon(Icons.home, color: Colors.pink),
-                        title: const Text('Home', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18)),
+                        leading: const Icon(Icons.home_outlined, color: Colors.pink),
+                        title: const Text(
+                          'Home',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 18,
+                          ),
+                        ),
                         onTap: () {
                           Navigator.of(context).pop(); // cierra el Drawer
                         },
                       ),
                       ListTile(
-                        leading: const Icon(Icons.badge, color: Colors.pink),
-                        title: const Text('Additional Data', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18)),
+                        leading: const Icon(Icons.badge_outlined, color: Colors.pink),
+                        title: const Text(
+                          'Additional Data',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 18,
+                          ),
+                        ),
                         onTap: () {
                           Navigator.push(
                             context,
@@ -90,12 +103,44 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),
                       ListTile(
                         leading: const Icon(
-                          Icons.phone_android,
+                          Icons.phone_android_outlined,
                           color: Colors.pink,
                         ),
-                        title: const Text('Contac us', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18)),
+                        title: const Text(
+                          'Contac us',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 18,
+                          ),
+                        ),
                         onTap: () {
-                          Navigator.of(context).pop();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const Contactanos(),
+                            ),
+                          );
+                        },
+                      ),
+                      ListTile(
+                        leading: const Icon(
+                          Icons.view_list_outlined,
+                          color: Colors.pink,
+                        ),
+                        title: const Text(
+                          'View List',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 18,
+                          ),
+                        ),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const Contactanos(),
+                            ),
+                          );
                         },
                       ),
 
@@ -106,7 +151,13 @@ class _MyHomePageState extends State<MyHomePage> {
                           Icons.app_registration_outlined,
                           color: Colors.pink,
                         ),
-                        title: const Text('Sign in', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18)),
+                        title: const Text(
+                          'Sign in',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 18,
+                          ),
+                        ),
                         onTap: () {
                           Navigator.push(
                             context,

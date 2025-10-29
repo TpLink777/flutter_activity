@@ -1,0 +1,15 @@
+
+CREATE TABLE data_contacts
+
+USE data_contacts
+
+CREATE TABLE data_contact_user (
+    id INT AUTO_INCREMENT,
+    nombre VARCHAR(100) NOT NULL,
+    apellido VARCHAR(100) NOT NULL,
+    correo VARCHAR(150) NOT NULL UNIQUE,
+    mensaje VARCHAR(255) NOT NULL,
+    PRIMARY KEY(id),
+    created_At TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_At TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
