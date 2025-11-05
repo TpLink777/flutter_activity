@@ -1,13 +1,12 @@
 const { DataContact } = require('../models')
 const { validationResult } = require('express-validator')
-
-
+const bcrypt = require('bcrypt');
 
 exports.ViewContacts = async (req, res) => {
     try {
 
         const view_data_contact = await DataContact.findAll({
-            attributes: ['id', 'nombre', 'apellido', 'correo']
+            attributes: ['id', 'nombre', 'apellido', 'correo', 'image_url']
         })
 
         console.log('Mensaje de contacto recibidos con exito!')
@@ -24,19 +23,32 @@ exports.ViewContacts = async (req, res) => {
 exports.CreatePossibleContact = async (req, res) => {
 
     const errors = validationResult(req)
+    console.log(errors.array());
     if (!errors.isEmpty()) return res.status(400).json({ Errors: errors.array() })
 
     try {
-        const { nombre, apellido, correo, mensaje } = req.body
+        const { nombre, apellido, correo, password } = req.body
+
+        const pass_hash = await bcrypt.hash(password, 12)
+
+        let image_url
+        if (req.file && req.file.path) {
+            image_url = req.file.path
+        }
+
+        if (!req.file) {
+            return res.status(400).json({ message: 'Debe subir una imagen' })
+        }
 
         const create_data_contact = await DataContact.create({
             nombre,
             apellido,
             correo,
-            mensaje
+            image_url,
+            password: pass_hash
         })
 
-        console.log('Mensaje de contacto guardado con exito!')
+        console.log('Usuario creado con exito!')
         res.status(201).json({ message: 'Datos almacenados con exito', data: create_data_contact })
 
     } catch (err) {
@@ -50,6 +62,7 @@ exports.CreatePossibleContact = async (req, res) => {
 exports.UpdateContact = async (req, res) => {
 
     const errors = validationResult(req)
+    console.log(errors.array());
     if (!errors.isEmpty()) return res.status(400).json({ Errors: errors.array() })
 
     try {
@@ -65,10 +78,14 @@ exports.UpdateContact = async (req, res) => {
         if (apellido != undefined) objectDataContacts.apellido = apellido
         if (correo != undefined) objectDataContacts.correo = correo
 
+        if (req.file && req.file.path) {
+            objectDataContacts.image_url = req.file.path
+        }
+
         await data_contact.update(objectDataContacts)
 
         const dataUpdated = await DataContact.findByPk(id, {
-            attributes: ['id', 'nombre', 'apellido', 'correo']
+            attributes: ['id', 'nombre', 'apellido', 'correo', 'image_url']
         })
 
 
@@ -85,6 +102,7 @@ exports.UpdateContact = async (req, res) => {
 exports.DeleteContact = async (req, res) => {
 
     const errors = validationResult(req)
+    console.log(errors.array());
     if (!errors.isEmpty()) return res.status(400).json({ Errors: errors.array() })
 
     try {

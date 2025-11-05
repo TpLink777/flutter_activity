@@ -15,7 +15,11 @@ const DataContact = sequenlize.define('data_contact', {
         allowNull: false,
         unique: true
     },
-    mensaje: {
+    image_url: {
+        type: DataTypes.STRING(500),
+        allowNull: false,
+    },
+    password: {
         type: DataTypes.STRING(255),
         allowNull: false,
     }

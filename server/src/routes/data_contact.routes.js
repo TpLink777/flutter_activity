@@ -1,5 +1,6 @@
 const express = require('express')
 const router = express.Router()
+const upload = require('../middleware/cloud')
 const dataContactController = require('../controllers/data_contact.controller')
 
 const { body, param } = require('express-validator')
@@ -7,7 +8,9 @@ const { body, param } = require('express-validator')
 router.get('/findInformationData', dataContactController.ViewContacts)
 
 
-router.post('/add-data-contact', [
+router.post('/add-data-contact', 
+    upload.single('image'),  [
+
     body('nombre')
         .notEmpty().withMessage('El nombre no puede estar vacío')
         .isString().withMessage('El nombre debe ser un texto'),
@@ -17,13 +20,18 @@ router.post('/add-data-contact', [
     body('correo')
         .notEmpty().withMessage('El correo no puede estar vacío')
         .isEmail().withMessage('El correo ingresado no es válido'),
-    body('mensaje')
-        .notEmpty().withMessage('El mensaje no puede estar vacío')
-        .isString().withMessage('El mensaje debe ser un texto'),
+    body('password')
+        .notEmpty().withMessage('La contraseña no puede estar vacía')
+        .isString().withMessage('LA contraseña debe ser un texto')
+        .isLength({ min: 8 }).withMessage('La contraseña debe tener al menos 8 caracteres')
+        .matches(/(?=.*\d)(?=.*[A-Z])(?=.*[a-z])/)
+        .withMessage('La contraseña debe contener mayúsculas, minúsculas y números')
+
 ], dataContactController.CreatePossibleContact)
 
 
-router.put('/updated-information/:id', [
+router.put('/updated-information/:id', 
+    upload.single('image'), [
     param('id')
         .notEmpty().withMessage('El ID no puede estar sin valor')
         .isInt().withMessage('El ID debe ser un número entero positivo'),
@@ -36,15 +44,16 @@ router.put('/updated-information/:id', [
     body('correo')
         .optional()
         .isEmail().withMessage('El correo ingresado no es válido'),
-
 ], dataContactController.UpdateContact)
 
 
 router.delete('/delete-information/:id', [
+
     param('id')
         .notEmpty().withMessage('El ID no puede estar sin valor')
         .isInt().withMessage('El ID debe ser un número entero positivo'),
-], dataContactController.DeleteContact) 
+
+], dataContactController.DeleteContact)
 
 
 module.exports = router

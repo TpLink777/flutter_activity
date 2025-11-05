@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 // Android emulator usa 10.0.2.2 para localhost
-const String baseUrl = 'http://192.168.1.10:5000/api/activity';
+// ip -> 192.168.1.10
+const String baseUrl = 'http://10.0.2.2:5000/api/activity';
 
 class ListViewUsers extends StatefulWidget {
   const ListViewUsers({super.key});
@@ -14,7 +18,10 @@ class ListViewUsers extends StatefulWidget {
 
 class _ListViewUsersState extends State<ListViewUsers> {
   List<dynamic> _usuarios = [];
+  List<dynamic> _filteredUsuarios = [];
   bool _isLoading = true;
+
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -36,6 +43,7 @@ class _ListViewUsersState extends State<ListViewUsers> {
         final data = json.decode(response.body);
         setState(() {
           _usuarios = data['data'] ?? data ?? [];
+          _filteredUsuarios = _usuarios;
           _isLoading = false;
         });
       }
@@ -49,6 +57,19 @@ class _ListViewUsersState extends State<ListViewUsers> {
           ),
         );
     }
+  }
+
+  void _buscarUsuario(String query) {
+    setState(() {
+      _searchQuery = query.toLowerCase();
+      _filteredUsuarios = _usuarios
+          .where(
+            (u) =>
+                u['nombre'].toString().toLowerCase().contains(_searchQuery) ||
+                u['apellido'].toString().toLowerCase().contains(_searchQuery),
+          )
+          .toList();
+    });
   }
 
   void _updateLocalUser(Map<String, dynamic> updated) {
@@ -77,62 +98,104 @@ class _ListViewUsersState extends State<ListViewUsers> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: Colors.pink))
-          : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: _usuarios.length,
-              itemBuilder: (context, index) {
-                final usuario = _usuarios[index];
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Card(
-                    elevation: 20,
-                    shadowColor: Colors.grey,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
+          : Column(
+              children: [
+                if (_usuarios.length >= 6)
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      top: 20,
+                      bottom: 0,
+                      left: 20,
+                      right: 20,
                     ),
-                    // ListTile se usa para mostrar información en una fila
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      leading: CircleAvatar(
-                        backgroundColor: Colors.pink[100],
-                        child: const Icon(Icons.person, color: Colors.pink),
-                      ),
-                      title: Text(
-                        usuario['nombre']?.toString().toUpperCase() ??
-                            'DESCONOCIDO',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
+                    child: TextField(
+                      decoration: InputDecoration(
+                        hintText: 'Buscar usuario...',
+                        hintStyle: TextStyle(color: Colors.black),
+                        prefixIcon: const Icon(
+                          Icons.search,
+                          color: Colors.pink,
                         ),
+                        focusColor: Colors.pink,
+
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Colors.black),
+                        ),
+
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide:  BorderSide(color: Colors.pink[200]!),
+                        ),
+
                       ),
-                      subtitle: Text(usuario['apellido'] ?? 'Sin apellido'),
-                      trailing: const Icon(
-                        Icons.arrow_forward_ios_rounded,
-                        color: Colors.pink,
-                        size: 22,
-                      ),
-                      onTap: () async {
-                        final result = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            //(_) significa que no usaremos el parámetro context
-                            builder: (_) =>
-                                DetalleUsuarioPage(usuario: usuario),
-                          ),
-                        );
-                        if (result == true) {
-                          _fetchUsuarios();
-                        } else if (result is Map<String, dynamic>) {
-                          _updateLocalUser(result);
-                        }
-                      },
+                      onChanged: _buscarUsuario,
+                      cursorColor: Colors.pink,
                     ),
                   ),
-                );
-              },
+                Expanded(
+                  child: ListView.builder( 
+                    padding: const EdgeInsets.all(16),
+                    itemCount: _filteredUsuarios.length,
+                    itemBuilder: (context, index) {
+                      final usuario = _filteredUsuarios[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Card(
+                          elevation: 20,
+                          shadowColor: Colors.grey,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                            leading: CircleAvatar(
+                              backgroundColor: Colors.pink[100],
+                              child: const Icon(
+                                Icons.person,
+                                color: Colors.pink,
+                              ),
+                            ),
+                            title: Text(
+                              usuario['nombre']?.toString().toUpperCase() ??
+                                  'DESCONOCIDO',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                              ),
+                            ),
+                            subtitle: Text(
+                              usuario['apellido'] ?? 'Sin apellido',
+                            ),
+                            trailing: const Icon(
+                              Icons.arrow_forward_ios_rounded,
+                              color: Colors.pink,
+                              size: 22,
+                            ),
+                            onTap: () async {
+                              final result = await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      DetalleUsuarioPage(usuario: usuario),
+                                ),
+                              );
+                              if (result == true) {
+                                _fetchUsuarios();
+                              } else if (result is Map<String, dynamic>) {
+                                _updateLocalUser(result);
+                              }
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
     );
   }
@@ -192,7 +255,7 @@ class DetalleUsuarioPage extends StatelessWidget {
                   const SnackBar(
                     backgroundColor: Colors.black,
                     content: Text(
-                      'Usuario eliminado Exitosamente! ',
+                      'Usuario eliminado Exitosamente!',
                       style: TextStyle(
                         color: Colors.green,
                         fontSize: 28,
@@ -217,6 +280,7 @@ class DetalleUsuarioPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final String? imageUrl = usuario['image_url'];
     return Scaffold(
       backgroundColor: const Color(0xFF121212),
       appBar: AppBar(
@@ -231,7 +295,7 @@ class DetalleUsuarioPage extends StatelessWidget {
         ),
         centerTitle: true,
         backgroundColor: Colors.pink,
-        iconTheme: IconThemeData(color: Colors.white),
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Center(
         child: Container(
@@ -248,7 +312,12 @@ class DetalleUsuarioPage extends StatelessWidget {
               CircleAvatar(
                 backgroundColor: Colors.white,
                 radius: 60,
-                child: const Icon(Icons.person, size: 90, color: Colors.pink),
+                backgroundImage: imageUrl != null && imageUrl.isNotEmpty
+                    ? NetworkImage(imageUrl)
+                    : null,
+                child: imageUrl == null || imageUrl.isEmpty
+                    ? const Icon(Icons.person, size: 90, color: Colors.pink)
+                    : null,
               ),
               const SizedBox(height: 20),
               Text(
@@ -268,13 +337,9 @@ class DetalleUsuarioPage extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(
-                    Icons.email_outlined,
-                    color: Color.fromARGB(255, 113, 113, 113),
-                    size: 20,
-                  ),
+                  const Icon(Icons.email_outlined,
+                      color: Color.fromARGB(255, 113, 113, 113), size: 20),
                   const SizedBox(width: 6),
-
                   Text(
                     usuario['correo'] ?? 'Sin correo',
                     style: const TextStyle(fontSize: 16, color: Colors.black),
@@ -293,14 +358,15 @@ class DetalleUsuarioPage extends StatelessWidget {
                     onTap: () async {
                       final updated =
                           await Navigator.push<Map<String, dynamic>?>(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  EditarUsuarioPage(usuario: usuario),
-                            ),
-                          );
-                      if (updated != null && context.mounted)
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              EditarUsuarioPage(usuario: usuario),
+                        ),
+                      );
+                      if (updated != null && context.mounted) {
                         Navigator.pop(context, updated);
+                      }
                     },
                   ),
                   _BotonAccion(
@@ -318,6 +384,7 @@ class DetalleUsuarioPage extends StatelessWidget {
     );
   }
 }
+
 
 class _BotonAccion extends StatelessWidget {
   final IconData icon;
@@ -374,22 +441,24 @@ class EditarUsuarioPage extends StatefulWidget {
 }
 
 class _EditarUsuarioPageState extends State<EditarUsuarioPage> {
-  final _formKey =
-      GlobalKey<FormState>(); // Clave global para validar el formulario
+  final _formKey = GlobalKey<FormState>();
   late TextEditingController _nombreCtrl, _apellidoCtrl, _correoCtrl;
   bool _guardando = false;
+
+  // 🖼 Variables para manejar imagen
+  File? _nuevaImagen; // imagen seleccionada
+  String? _imagenActualUrl; // URL actual del usuario
 
   @override
   void initState() {
     super.initState();
-    // TextEditingController sirve para controlar y gestionar el texto dentro de un widget
     _nombreCtrl = TextEditingController(text: widget.usuario['nombre']);
     _apellidoCtrl = TextEditingController(text: widget.usuario['apellido']);
     _correoCtrl = TextEditingController(text: widget.usuario['correo']);
+    _imagenActualUrl = widget.usuario['image_url']; // cargamos la imagen actual
   }
 
   @override
-  // Dispose se utiliza para liberar recursos cuando el widget se elimina
   void dispose() {
     _nombreCtrl.dispose();
     _apellidoCtrl.dispose();
@@ -397,59 +466,79 @@ class _EditarUsuarioPageState extends State<EditarUsuarioPage> {
     super.dispose();
   }
 
+  // 🧩 Método para abrir el selector de imágenes
+  Future<void> _seleccionarImagen() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery); // galería
+
+    if (pickedFile != null) {
+      setState(() {
+        _nuevaImagen = File(pickedFile.path);
+      });
+    }
+  }
+
+  // 💾 Método para guardar datos e imagen
   Future<void> _guardar() async {
     if (!_formKey.currentState!.validate()) return;
-
     final id = widget.usuario['id'];
-    if (id == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('ID no disponible')));
-      return;
-    }
+    if (id == null) return;
 
     setState(() => _guardando = true);
 
     try {
-      final response = await http
-          .put(
-            Uri.parse('$baseUrl/updated-information/$id'),
-            headers: {'Content-Type': 'application/json'},
-            // Convierte el mapa de datos a una cadena JSON
-            body: json.encode({
-              'nombre': _nombreCtrl.text.trim(),
-              'apellido': _apellidoCtrl.text.trim(),
-              'correo': _correoCtrl.text.trim(),
-            }),
-          )
-          .timeout(const Duration(seconds: 15));
+      // Si hay imagen nueva, usamos MultipartRequest
+      var request = http.MultipartRequest(
+        'PUT',
+        Uri.parse('$baseUrl/updated-information/$id'),
+      );
+
+      // Campos normales
+      request.fields['nombre'] = _nombreCtrl.text.trim();
+      request.fields['apellido'] = _apellidoCtrl.text.trim();
+      request.fields['correo'] = _correoCtrl.text.trim();
+
+      // Imagen (solo si el usuario seleccionó una nueva)
+      if (_nuevaImagen != null) {
+        request.files.add(await http.MultipartFile.fromPath(
+          'image', // este nombre debe coincidir con el campo que tu backend espera
+          _nuevaImagen!.path,
+        ));
+      }
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
         final decoded = json.decode(response.body);
-        final updated =
-            decoded['data'] ??
+        final updated = decoded['data'] ??
             {
               'id': id,
               'nombre': _nombreCtrl.text.trim(),
               'apellido': _apellidoCtrl.text.trim(),
               'correo': _correoCtrl.text.trim(),
+              'image_url': _imagenActualUrl,
             };
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Usuario actualizado'),
-              duration: Duration(seconds: 1),
-            ),
+            const SnackBar(content: Text('Usuario actualizado exitosamente')),
           );
           Navigator.pop(context, updated);
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: ${response.body}')),
+          );
         }
       }
     } catch (e) {
       if (mounted)
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error: $e')));
+    } finally {
+      setState(() => _guardando = false);
     }
   }
 
@@ -460,22 +549,16 @@ class _EditarUsuarioPageState extends State<EditarUsuarioPage> {
       appBar: AppBar(
         title: const Text(
           'Editar Usuario',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 28,
-          ),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.pink,
         centerTitle: true,
-        iconTheme: IconThemeData(color: Colors.white),
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
-      // SingleChildScrollView permite que el contenido sea desplazable si es necesario
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Center(
           child: Container(
-            //  establecer límites de tamaño
             constraints: const BoxConstraints(maxWidth: 600),
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
@@ -484,29 +567,32 @@ class _EditarUsuarioPageState extends State<EditarUsuarioPage> {
             ),
             child: Form(
               key: _formKey,
-              autovalidateMode: AutovalidateMode.onUserInteraction,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  CircleAvatar(
-                    backgroundColor: Colors.white,
-                    radius: 40,
-                    child: const Icon(
-                      Icons.person,
-                      size: 60,
-                      color: Colors.pink,
+                  // 🖼 Imagen editable
+                  GestureDetector(
+                    onTap: _seleccionarImagen,
+                    child: CircleAvatar(
+                      radius: 60,
+                      backgroundColor: Colors.white,
+                      backgroundImage: _nuevaImagen != null
+                          ? FileImage(_nuevaImagen!)
+                          : (_imagenActualUrl != null
+                              ? NetworkImage(_imagenActualUrl!)
+                              : null) as ImageProvider?,
+                      child: _nuevaImagen == null && _imagenActualUrl == null
+                          ? const Icon(Icons.camera_alt,
+                              color: Colors.pink, size: 50)
+                          : null,
                     ),
                   ),
                   const SizedBox(height: 18),
                   Text(
-                    'Editar usuario',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.pink.shade700,
-                    ),
+                    'Toca la imagen para cambiarla',
+                    style: TextStyle(color: Colors.grey[600], fontSize: 14),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 25),
                   _CampoTexto(
                     controller: _nombreCtrl,
                     label: 'Nombre',
@@ -525,7 +611,6 @@ class _EditarUsuarioPageState extends State<EditarUsuarioPage> {
                     controller: _correoCtrl,
                     label: 'Correo',
                     icon: Icons.email_outlined,
-                    // Especifica el tipo de teclado para correo electrónico
                     keyboardType: TextInputType.emailAddress,
                     validator: (v) {
                       if (v!.trim().isEmpty) return 'Requerido';
@@ -559,18 +644,10 @@ class _EditarUsuarioPageState extends State<EditarUsuarioPage> {
                             padding: const EdgeInsets.symmetric(vertical: 14),
                           ),
                           child: _guardando
-                              ? const SizedBox(
-                                  height: 18,
-                                  width: 18,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2, // Grosor del indicador
-                                  ),
-                                )
-                              : const Text(
-                                  'Guardar',
-                                  style: TextStyle(color: Colors.white),
-                                ),
+                              ? const CircularProgressIndicator(
+                                  color: Colors.white, strokeWidth: 2)
+                              : const Text('Guardar',
+                                  style: TextStyle(color: Colors.white)),
                         ),
                       ),
                     ],
@@ -609,7 +686,7 @@ class _CampoTexto extends StatelessWidget {
         labelText: label,
         prefixIcon: Icon(icon),
         filled: true,
-        fillColor: Colors.white, // Color de fondo del campo de texto
+        fillColor: Colors.white,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
