@@ -92,6 +92,7 @@ class _ExtraDataState extends State<ExtraData> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFFFF5F7),
       appBar: AppBar(
         title: const Text(
           'Formulario de Envío',
@@ -105,112 +106,117 @@ class _ExtraDataState extends State<ExtraData> {
         centerTitle: true,
         iconTheme: IconThemeData(color: Colors.white),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 300,
+                  height: 450,
+                  padding: EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.black, width: 2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
 
-              width: 300,
-              height: 450,
-              padding: EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.black, width: 2),
-                borderRadius: BorderRadius.circular(12),
-              ),
+                  child: Form(
+                    key: _formKey,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    child: ListView(
+                      children: [
+                        // Dirección
+                        TextFormField(
+                          controller: direccionController,
+                          decoration: const InputDecoration(
+                            labelText: 'Address',
+                            labelStyle: TextStyle(color: Colors.black),
+                            border: OutlineInputBorder(),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Por favor ingresa tu dirección';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 20),
 
-              child: Form(
-                key: _formKey,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-                child: ListView(
-                  children: [
-                    // Dirección
-                    TextFormField(
-                      controller: direccionController,
-                      decoration: const InputDecoration(
-                        labelText: 'Address',
-                        labelStyle: TextStyle(color: Colors.black),
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Por favor ingresa tu dirección';
-                        }
-                        return null;
-                      },
+                        // Ciudad Dropdown
+                        // nos sirve para crear un campo con una lista desplegable de opciones
+                        DropdownButtonFormField<String>(
+                          initialValue: ciudadSeleccionada,
+                          decoration: InputDecoration(
+                            labelText: 'City',
+                            labelStyle: TextStyle(color: Colors.black),
+                            border: OutlineInputBorder(),
+                          ),
+                          items: ciudades
+                              .map(
+                                (ciudad) => DropdownMenuItem( //sirve para representar cada opción individual
+                                  value: ciudad,
+                                  child: Text(ciudad),
+                                ),
+                              )
+                              .toList(), // Convertir la lista de ciudades en una lista de DropdownMenuItem
+                          onChanged: (value) {
+                            setState(() {
+                              ciudadSeleccionada = value;
+                            });
+                          },
+                          validator: (value) {
+                            if (value == null) {
+                              return 'Por favor selecciona una ciudad';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Método de pago RadioListTile
+                        const Text(
+                          'Payment Method',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        ...metodos.map(
+                          (metodo) => RadioListTile<String>( // sirve para crear una opción de selección única
+                            title: Text(metodo),
+                            value: metodo,
+                            groupValue: metodoPago,
+                            onChanged: (value) {
+                              setState(() {
+                                metodoPago = value;
+                              });
+                            },
+                          ),
+                        ),
+
+                        const SizedBox(height: 20),
+
+                        // Botón enviar
+                        ElevatedButton(
+                          onPressed: enviarFormulario,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.pink,
+                            padding: const EdgeInsets.symmetric(vertical: 15),
+                          ),
+                          child: const Text(
+                            'Accept',
+                            style: TextStyle(fontSize: 18, color: Colors.white),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 20),
-
-                    // Ciudad Dropdown
-                    DropdownButtonFormField<String>(
-                      initialValue: ciudadSeleccionada,
-                      decoration: const InputDecoration(
-                        labelText: 'City',
-                        labelStyle: TextStyle(color: Colors.black),
-                        border: OutlineInputBorder(),
-                      ),
-                      items: ciudades
-                          .map(
-                            (ciudad) => DropdownMenuItem(
-                              value: ciudad,
-                              child: Text(ciudad),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          ciudadSeleccionada = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value == null) {
-                          return 'Por favor selecciona una ciudad';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Método de pago RadioListTile
-                    const Text(
-                      'Payment Method',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    ...metodos.map(
-                      (metodo) => RadioListTile<String>(
-                        title: Text(metodo),
-                        value: metodo,
-                        groupValue: metodoPago,
-                        onChanged: (value) {
-                          setState(() {
-                            metodoPago = value;
-                          });
-                        },
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    // Botón enviar
-                    ElevatedButton(
-                      onPressed: enviarFormulario,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.pink,
-                        padding: const EdgeInsets.symmetric(vertical: 15),
-                      ),
-                      child: const Text(
-                        'Accept',
-                        style: TextStyle(fontSize: 18, color: Colors.white),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

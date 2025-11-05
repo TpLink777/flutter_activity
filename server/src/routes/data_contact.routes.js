@@ -4,7 +4,7 @@ const dataContactController = require('../controllers/data_contact.controller')
 
 const { body, param } = require('express-validator')
 
-/* router.get('/findInformationData', dataContactController.ViewContacts) */
+router.get('/findInformationData', dataContactController.ViewContacts)
 
 
 router.post('/add-data-contact', [
@@ -23,28 +23,28 @@ router.post('/add-data-contact', [
 ], dataContactController.CreatePossibleContact)
 
 
-/* router.put('/updated-information/:id', [
+router.put('/updated-information/:id', [
     param('id')
         .notEmpty().withMessage('El ID no puede estar sin valor')
         .isInt().withMessage('El ID debe ser un número entero positivo'),
     body('nombre')
-        .optional().withMessage('El nombre no puede estar vacío')
+        .optional()
         .isString().withMessage('El nombre debe ser un texto'),
     body('apellido')
-        .optional().withMessage('El apellido no puede estar vacío')
+        .optional()
         .isString().withMessage('El apellido debe ser un texto'),
     body('correo')
-        .optional().withMessage('El correo no puede estar vacío')
+        .optional()
         .isEmail().withMessage('El correo ingresado no es válido'),
 
 ], dataContactController.UpdateContact)
 
 
-router.delete('/destroy-information/:id', [
+router.delete('/delete-information/:id', [
     param('id')
         .notEmpty().withMessage('El ID no puede estar sin valor')
         .isInt().withMessage('El ID debe ser un número entero positivo'),
-], dataContactController.DeleteContact) */
+], dataContactController.DeleteContact) 
 
 
 module.exports = router

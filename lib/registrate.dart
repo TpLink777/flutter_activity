@@ -31,6 +31,7 @@ class _RegistroState extends State<Registro> {
     telefonoController.clear();
     passController.clear();
     confirmarPasswordController.clear();
+    _imagenPerfil = null;
     setState(() {
       aceptoTerminos = false;
     });
@@ -174,6 +175,7 @@ class _RegistroState extends State<Registro> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFFFF5F7),
       appBar: AppBar(
         title: const Text(
           '¡Registrate!',
@@ -187,274 +189,279 @@ class _RegistroState extends State<Registro> {
         centerTitle: true,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            GestureDetector(
-              onTap: seleccionarImagen,
-              child: CircleAvatar(
-                radius: 50,
-                backgroundImage: _imagenPerfil != null
-                    ? FileImage(_imagenPerfil!)
-                    : null,
-                child: _imagenPerfil == null
-                    ? const Icon(Icons.person, size: 50)
-                    : null,
-              ),
-            ),
-            const SizedBox(height: 50),
-
-            Container(
-              width: 320,
-              height: 480,
-              padding: EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.black, width: 2),
-                borderRadius: BorderRadius.circular(12),
-              ),
-
-              child: Form(
-                key: _formkey,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-                child: ListView(
-                  children: [
-                    TextFormField(
-                      controller: nombreController,
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(15)),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.black),
-                        ),
-                        labelText: 'Ingresa tu nombre',
-                        labelStyle: TextStyle(color: Colors.black),
-                        suffixIcon: nameValido
-                            ? const Icon(
-                                Icons.check_circle_outlined,
-                                color: Colors.green,
-                              )
-                            : const Icon(
-                                Icons.cancel_outlined,
-                                color: Colors.red,
-                              ),
-                      ),
-
-                      onChanged: (value) {
-                        setState(() {
-                          nameValido = validarNombre(value);
-                        });
-                      },
-
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Por favor ingresa tu nombre';
-                        }
-
-                        if (!RegExp(
-                          r"^[A-Za-zÁÉÍÓÚÑáéíóúñ\s]{2,}$",
-                        ).hasMatch(value)) {
-                          return 'El nombre solo debe de contener letras y espacios';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 20),
-                    TextFormField(
-                      controller: emailController,
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(15)),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.black),
-                        ),
-                        labelText: 'Ingresa tu email',
-                        labelStyle: TextStyle(color: Colors.black),
-                        suffixIcon: emailValido
-                            ? const Icon(
-                                Icons.check_circle_outlined,
-                                color: Colors.green,
-                              )
-                            : const Icon(
-                                Icons.cancel_outlined,
-                                color: Colors.red,
-                              ),
-                      ),
-
-                      onChanged: (value) {
-                        setState(() {
-                          emailValido = validadEmail(value);
-                        });
-                      },
-
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Por favor ingresa tu email';
-                        }
-                        if (!RegExp(
-                          r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                        ).hasMatch(value)) {
-                          return 'Por favor ingresa un email con formato valido';
-                        }
-
-                        if (!validadEmail(value)) {
-                          return 'Por favor ingresa un email con formato válido';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 20),
-                    TextFormField(
-                      controller: telefonoController,
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(15)),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.black),
-                        ),
-                        labelText: 'Ingresa tu teléfono',
-                        labelStyle: TextStyle(color: Colors.black),
-                        suffixIcon: phoneValido
-                            ? const Icon(
-                                Icons.check_circle_outlined,
-                                color: Colors.green,
-                              )
-                            : const Icon(
-                                Icons.cancel_outlined,
-                                color: Colors.red,
-                              ),
-                      ),
-
-                      onChanged: (value) {
-                        setState(() {
-                          phoneValido = validarTelefono(value);
-                        });
-                      },
-
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Por favor ingresa tu teléfono';
-                        }
-                        if (!RegExp(r'^\d{10}$').hasMatch(value)) {
-                          return 'El teléfono debe tener 10 dígitos';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 20),
-                    TextFormField(
-                      controller: passController,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(15)),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.black),
-                        ),
-                        labelText: 'Ingresa tu contraseña',
-                        labelStyle: TextStyle(color: Colors.black),
-                      ),
-
-                      onChanged: (value) {
-                        setState(() {
-                          seguridadPass = evaluarSeguridad(value);
-                        });
-                      },
-                      obscureText: true,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Por favor ingresa tu contraseña';
-                        }
-                        if (!RegExp(
-                          r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@$!%*?&])[A-Za-z\d$@$!%*?&]{8,15}$',
-                        ).hasMatch(value)) {
-                          return 'Debe tener al menos 8 caracteres, una letra, un número y un carácter especial';
-                        }
-
-                        return null;
-                      },
-                    ),
-
-                    const SizedBox(height: 10),
-
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(
-                        16,
-                      ), // Bordes redondeados
-                      child: LinearProgressIndicator(
-                        value: valorSeguridad(passController.text),
-                        color: colorSeguridad(passController.text),
-                        backgroundColor: Colors.grey[200],
-                        minHeight: 8,
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-                    TextFormField(
-                      controller: confirmarPasswordController,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(15)),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.black),
-                        ),
-                        labelText: 'Confirma tu contraseña',
-                        labelStyle: TextStyle(color: Colors.black),
-                      ),
-                      obscureText: true,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Por favor confirma tu contraseña';
-                        }
-                        if (!RegExp(
-                          r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{10,}$',
-                        ).hasMatch(value)) {
-                          return 'Debe tener al menos 10 caracteres, una letra y un número';
-                        }
-                        if (value != passController.text) {
-                          return 'Las contraseñas deben de ser iguales';
-                        }
-
-                        return null;
-                      },
-                    ),
-
-                    CheckboxListTile(
-                      title: const Text('Aceptar términos y condiciones'),
-                      activeColor: Colors.pink,
-                      value: aceptoTerminos,
-                      onChanged: (bool? valor) {
-                        setState(() {
-                          aceptoTerminos = valor ?? false;
-                        });
-                      },
-                      controlAffinity: ListTileControlAffinity.leading,
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: registroUsuario,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
-                      ),
-                      child: const Text(
-                        'Registrar',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ],
+      
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                GestureDetector(
+                  onTap: seleccionarImagen,
+                  child: CircleAvatar(
+                    radius: 50,
+                    backgroundImage: _imagenPerfil != null
+                        ? FileImage(_imagenPerfil!)
+                        : null,
+                    child: _imagenPerfil == null
+                        ? const Icon(Icons.person, size: 50)
+                        : null,
+                  ),
                 ),
-              ),
+                const SizedBox(height: 50),
+            
+                Container(
+                  width: 320,
+                  height: 500,
+                  padding: EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.black, width: 2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+            
+                  child: Form(
+                    key: _formkey,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    child: ListView(
+                      children: [
+                        TextFormField(
+                          controller: nombreController,
+                          decoration: InputDecoration(
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.all(Radius.circular(15)),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.black),
+                            ),
+                            labelText: 'Ingresa tu nombre',
+                            labelStyle: TextStyle(color: Colors.black),
+                            suffixIcon: nameValido
+                                ? const Icon(
+                                    Icons.check_circle_outlined,
+                                    color: Colors.green,
+                                  )
+                                : const Icon(
+                                    Icons.cancel_outlined,
+                                    color: Colors.red,
+                                  ),
+                          ),
+            
+                          onChanged: (value) {
+                            setState(() {
+                              nameValido = validarNombre(value);
+                            });
+                          },
+            
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Por favor ingresa tu nombre';
+                            }
+            
+                            if (!RegExp(
+                              r"^[A-Za-zÁÉÍÓÚÑáéíóúñ\s]{2,}$",
+                            ).hasMatch(value)) {
+                              return 'El nombre solo debe de contener letras y espacios';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 20),
+                        TextFormField(
+                          controller: emailController,
+                          decoration: InputDecoration(
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.all(Radius.circular(15)),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.black),
+                            ),
+                            labelText: 'Ingresa tu email',
+                            labelStyle: TextStyle(color: Colors.black),
+                            suffixIcon: emailValido
+                                ? const Icon(
+                                    Icons.check_circle_outlined,
+                                    color: Colors.green,
+                                  )
+                                : const Icon(
+                                    Icons.cancel_outlined,
+                                    color: Colors.red,
+                                  ),
+                          ),
+            
+                          onChanged: (value) {
+                            setState(() {
+                              emailValido = validadEmail(value);
+                            });
+                          },
+            
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Por favor ingresa tu email';
+                            }
+                            if (!RegExp(
+                              r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                            ).hasMatch(value)) {
+                              return 'Por favor ingresa un email con formato valido';
+                            }
+            
+                            if (!validadEmail(value)) {
+                              return 'Por favor ingresa un email con formato válido';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 20),
+                        TextFormField(
+                          controller: telefonoController,
+                          decoration: InputDecoration(
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.all(Radius.circular(15)),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.black),
+                            ),
+                            labelText: 'Ingresa tu teléfono',
+                            labelStyle: TextStyle(color: Colors.black),
+                            suffixIcon: phoneValido
+                                ? const Icon(
+                                    Icons.check_circle_outlined,
+                                    color: Colors.green,
+                                  )
+                                : const Icon(
+                                    Icons.cancel_outlined,
+                                    color: Colors.red,
+                                  ),
+                          ),
+            
+                          onChanged: (value) {
+                            setState(() {
+                              phoneValido = validarTelefono(value);
+                            });
+                          },
+            
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Por favor ingresa tu teléfono';
+                            }
+                            if (!RegExp(r'^\d{10}$').hasMatch(value)) {
+                              return 'El teléfono debe tener 10 dígitos';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 20),
+                        TextFormField(
+                          controller: passController,
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.all(Radius.circular(15)),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.black),
+                            ),
+                            labelText: 'Ingresa tu contraseña',
+                            labelStyle: TextStyle(color: Colors.black),
+                          ),
+            
+                          onChanged: (value) {
+                            setState(() {
+                              seguridadPass = evaluarSeguridad(value);
+                            });
+                          },
+                          obscureText: true,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Por favor ingresa tu contraseña';
+                            }
+                            if (!RegExp(
+                              r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@$!%*?&])[A-Za-z\d$@$!%*?&]{8,15}$',
+                            ).hasMatch(value)) {
+                              return 'Debe tener al menos 8 caracteres, una letra, un número y un carácter especial';
+                            }
+            
+                            return null;
+                          },
+                        ),
+            
+                        const SizedBox(height: 10),
+            
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(
+                            16,
+                          ), // Bordes redondeados
+                          child: LinearProgressIndicator(
+                            value: valorSeguridad(passController.text),
+                            color: colorSeguridad(passController.text),
+                            backgroundColor: Colors.grey[200],
+                            minHeight: 8, // Altura del indicador
+                          ),
+                        ),
+            
+                        const SizedBox(height: 20),
+                        TextFormField(
+                          controller: confirmarPasswordController,
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.all(Radius.circular(15)),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.black),
+                            ),
+                            labelText: 'Confirma tu contraseña',
+                            labelStyle: TextStyle(color: Colors.black),
+                          ),
+                          obscureText: true,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Por favor confirma tu contraseña';
+                            }
+                            if (!RegExp(
+                              r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{10,}$',
+                            ).hasMatch(value)) {
+                              return 'Debe tener al menos 10 caracteres, una letra y un número';
+                            }
+                            if (value != passController.text) {
+                              return 'Las contraseñas deben de ser iguales';
+                            }
+            
+                            return null;
+                          },
+                        ),
+            
+                        CheckboxListTile(
+                          title: const Text('Aceptar términos y condiciones'),
+                          activeColor: Colors.pink,
+                          value: aceptoTerminos,
+                          onChanged: (bool? valor) {
+                            setState(() {
+                              aceptoTerminos = valor ?? false;
+                            });
+                          },
+                          controlAffinity: ListTileControlAffinity.leading,
+                        ),
+                        const SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: registroUsuario,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.black,
+                          ),
+                          child: const Text(
+                            'Registrar',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

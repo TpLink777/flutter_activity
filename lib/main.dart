@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'registrate.dart';
 import 'extra.dart';
 import 'contactanos.dart';
+import 'list_view_users.dart';
 
 void main() {
   runApp(const MyApp());
@@ -30,6 +31,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFFFF5F7),
       appBar: AppBar(
         title: const Text(
           'Activity Home',
@@ -45,7 +47,7 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
 
       drawer: Drawer(
-        child: Builder(
+        child: Builder( //permite construir objetos complejos paso a paso y optimizar el rendimiento
           builder: (BuildContext context) {
             return Column(
               children: [
@@ -67,7 +69,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ),
                 Expanded(
-                  child: ListView(
+                  child: ListView( //  sirve para mostrar una lista desplazable de widgets
                     padding: EdgeInsets.zero,
                     children: [
                       ListTile(
@@ -80,7 +82,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           ),
                         ),
                         onTap: () {
-                          Navigator.of(context).pop(); // cierra el Drawer
+                          Navigator.of(context).pop();
                         },
                       ),
                       ListTile(
@@ -138,7 +140,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const Contactanos(),
+                              builder: (context) =>   ListViewUsers(),
                             ),
                           );
                         },
@@ -210,32 +212,37 @@ class _MyHomePageState extends State<MyHomePage> {
           children: [
             SizedBox(
               width: 300,
-              height: 200,
+              height: 250,
               child: Card(
                 color: Colors.white,
-                elevation: 10,
+                elevation: 50,
                 shadowColor: Colors.pink,
                 child: Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.all(8),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: const [
-                      Text(
-                        'Welcome to the Activity App!',
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4, bottom: 4, left: 16, right: 16),
+                        child: Text(
+                          'Welcome to the Activity App!',
+                          style: TextStyle(
+                            fontSize: 26,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
-                        textAlign: TextAlign.center,
                       ),
                       SizedBox(height: 16),
-                      Text(
-                        'This is a simple Flutter application demonstrating an application.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8, bottom: 8, left: 16, right: 16),
+                        child: Text(
+                          'This is a simple Flutter application demonstrating an application.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ],
