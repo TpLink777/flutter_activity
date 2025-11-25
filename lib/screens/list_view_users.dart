@@ -7,7 +7,7 @@ import 'package:image_picker/image_picker.dart';
 
 // Android emulator usa 10.0.2.2 para localhost
 // ip -> 192.168.1.10
-const String baseUrl = 'http://10.0.2.2:5000/api/activity';
+const String baseUrl = 'http://192.168.1.10:5000/api/activity';
 
 class ListViewUsers extends StatefulWidget {
   const ListViewUsers({super.key});

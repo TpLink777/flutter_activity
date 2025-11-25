@@ -1,5 +1,7 @@
+import 'package:activity/core/text_styles.dart';
 import 'package:flutter/material.dart';
-import 'main.dart';
+import '../controllers/logic_archive_extra.dart';
+import '../widget/appBar.dart';
 
 class ExtraData extends StatefulWidget {
   const ExtraData({super.key});
@@ -9,113 +11,25 @@ class ExtraData extends StatefulWidget {
 }
 
 class _ExtraDataState extends State<ExtraData> {
-  final _formKey = GlobalKey<FormState>();
-  final TextEditingController direccionController = TextEditingController();
-  String? ciudadSeleccionada;
-  String? metodoPago;
 
-  final List<String> ciudades = [
-    'Medellin',
-    'Manrique',
-    'Laureles',
-    'El Poblado',
-  ];
-
-  void limpiarFormulario() {
-    direccionController.clear();
-    ciudadSeleccionada = null;
-    metodoPago = null;
-    setState(() {});
-  }
-
-  final List<String> metodos = ['Card', 'PayPal', 'Cash on delivery'];
-
-  void enviarFormulario() {
-    if (_formKey.currentState!.validate()) {
-      if (ciudadSeleccionada == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Por favor selecciona una ciudad'),
-            backgroundColor: Colors.red,
-          ),
-        );
-        return;
-      }
-
-      if (metodoPago == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Por favor selecciona un método de pago'),
-            backgroundColor: Colors.red,
-          ),
-        );
-        return;
-      }
-
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
-          title: const Text(
-            'Shipping Summary',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Address: ${direccionController.text}'),
-              Text('City: $ciudadSeleccionada'),
-              Text('payment method: $metodoPago'),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const MyApp()),
-                ),
-                limpiarFormulario(),
-              },
-              child: const Text('Accept'),
-            ),
-          ],
-        ),
-      );
-    }
-  }
+  final LogicArchiveExtra logic = LogicArchiveExtra();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFFF5F7),
-      appBar: AppBar(
-        title: const Text(
-          'Formulario de Envío',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 22,
-          ),
-        ),
-        backgroundColor: Colors.pink,
-        centerTitle: true,
-        iconTheme: IconThemeData(color: Colors.white),
-      ),
+      appBar: AppBarWidget.appBarPersonalizado('Formulario de Envío', 22, Colors.white, TextAlign.center, FontWeight.bold),
+
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.all(20),
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
                   width: 300,
-                  height: 450,
+                  height: 480,
                   padding: EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.black, width: 2),
@@ -123,13 +37,13 @@ class _ExtraDataState extends State<ExtraData> {
                   ),
 
                   child: Form(
-                    key: _formKey,
+                    key: logic.formKey,
                     autovalidateMode: AutovalidateMode.onUserInteraction,
                     child: ListView(
                       children: [
                         // Dirección
                         TextFormField(
-                          controller: direccionController,
+                          controller: logic.direccionController,
                           decoration: const InputDecoration(
                             labelText: 'Address',
                             labelStyle: TextStyle(color: Colors.black),
@@ -147,13 +61,13 @@ class _ExtraDataState extends State<ExtraData> {
                         // Ciudad Dropdown
                         // nos sirve para crear un campo con una lista desplegable de opciones
                         DropdownButtonFormField<String>(
-                          initialValue: ciudadSeleccionada,
+                          initialValue: logic.ciudadSeleccionada,
                           decoration: InputDecoration(
                             labelText: 'City',
                             labelStyle: TextStyle(color: Colors.black),
                             border: OutlineInputBorder(),
                           ),
-                          items: ciudades
+                          items: logic.ciudades
                               .map(
                                 (ciudad) => DropdownMenuItem( //sirve para representar cada opción individual
                                   value: ciudad,
@@ -163,7 +77,7 @@ class _ExtraDataState extends State<ExtraData> {
                               .toList(), // Convertir la lista de ciudades en una lista de DropdownMenuItem
                           onChanged: (value) {
                             setState(() {
-                              ciudadSeleccionada = value;
+                              logic.ciudadSeleccionada = value;
                             });
                           },
                           validator: (value) {
@@ -176,21 +90,15 @@ class _ExtraDataState extends State<ExtraData> {
                         const SizedBox(height: 20),
 
                         // Método de pago RadioListTile
-                        const Text(
-                          'Payment Method',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        ...metodos.map(
+                        TextConstructor.styleTxt('Payment Method', 18, Colors.black, TextAlign.start, FontWeight.w500),
+                        ...logic.metodos.map(
                           (metodo) => RadioListTile<String>( // sirve para crear una opción de selección única
                             title: Text(metodo),
                             value: metodo,
-                            groupValue: metodoPago,
+                            groupValue: logic.metodoPago,
                             onChanged: (value) {
                               setState(() {
-                                metodoPago = value;
+                                logic.metodoPago = value;
                               });
                             },
                           ),
@@ -200,15 +108,12 @@ class _ExtraDataState extends State<ExtraData> {
 
                         // Botón enviar
                         ElevatedButton(
-                          onPressed: enviarFormulario,
+                          onPressed:  () => logic.enviarFormulario(context, () => setState(() {})),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.pink,
                             padding: const EdgeInsets.symmetric(vertical: 15),
                           ),
-                          child: const Text(
-                            'Accept',
-                            style: TextStyle(fontSize: 18, color: Colors.white),
-                          ),
+                          child: TextConstructor.styleTxt('Accept', 20, Colors.white, TextAlign.center, FontWeight.bold),
                         ),
                       ],
                     ),

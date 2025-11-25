@@ -1,6 +1,8 @@
 const { DataContact } = require('../models')
 const { validationResult } = require('express-validator')
 const bcrypt = require('bcrypt');
+const { generateToken } = require('../auth/token_logic')
+
 
 exports.ViewContacts = async (req, res) => {
     try {
@@ -19,11 +21,9 @@ exports.ViewContacts = async (req, res) => {
 }
 
 
-
 exports.CreatePossibleContact = async (req, res) => {
 
     const errors = validationResult(req)
-    console.log(errors.array());
     if (!errors.isEmpty()) return res.status(400).json({ Errors: errors.array() })
 
     try {
@@ -62,7 +62,6 @@ exports.CreatePossibleContact = async (req, res) => {
 exports.UpdateContact = async (req, res) => {
 
     const errors = validationResult(req)
-    console.log(errors.array());
     if (!errors.isEmpty()) return res.status(400).json({ Errors: errors.array() })
 
     try {
@@ -102,7 +101,6 @@ exports.UpdateContact = async (req, res) => {
 exports.DeleteContact = async (req, res) => {
 
     const errors = validationResult(req)
-    console.log(errors.array());
     if (!errors.isEmpty()) return res.status(400).json({ Errors: errors.array() })
 
     try {
@@ -121,3 +119,75 @@ exports.DeleteContact = async (req, res) => {
         res.status(500).json({ message: 'Error interno del servidor', Error: err })
     }
 }
+
+
+// Login function to authenticate user and generate token
+
+exports.login = async (req, res) => {
+
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() })
+
+
+    try {
+
+        const { correo, password } = req.body
+
+        const inicioDeSeccion = await DataContact.findOne({
+            where: {
+                correo
+            }
+        })
+
+        if (!inicioDeSeccion) return res.status(401).json({ message: 'Correo o contraseña incorrectos' })
+
+        const verifyPassword = await bcrypt.compare(password, inicioDeSeccion.password)
+
+        if (!verifyPassword) return res.status(401).json({ message: 'Contraseña incorrecta' })
+
+        const accessToken = generateToken(inicioDeSeccion)
+
+        res.cookie('accessToken', accessToken, {
+            httpOnly: true, // Sirve para que no se pueda acceder a la cookie desde el lado del cliente
+            secure: false,
+            sameSite: 'lax', // Protege contra ataques CSRF
+            maxAge: 8 * 60 * 60 * 1000 // 8 horas
+        })
+
+        console.log('inicio de seccion exitoso')
+        res.status(200).json({ message: 'Inicio de sesión exitoso', accessToken })
+
+    } catch (err) {
+        console.log('Error al iniciar seccion: ', err)
+        res.status(500).json({ message: 'Error interno del servidor', Error: err })
+    }
+}
+
+
+exports.validarEmail = async (req, res) => {
+
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() })
+
+    try {
+        const { correo } = req.query
+
+        const validacion = await DataContact.findOne({
+            where: {
+                correo
+            }
+        })
+
+        if (validacion) {
+            return res.status(200).json({ existe: true, mensaje: 'Este correo ya está registrado.' });
+        } else {
+            return res.status(200).json({ existe: false, mensaje: 'Este correo no está registrado.' });
+        }
+
+    } catch (err) {
+        console.error('Error al verificar el correo:', err);
+        res.status(500).json({ err: 'No se pudo verificar el correo.', Error: err });
+    }
+}
+
+
