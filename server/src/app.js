@@ -13,7 +13,7 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({
     origin: "*", // Permitir solicitudes desde cualquier origen
-    credentials: true
+    credentials: true // Permitir el envío de cookies y credenciales
 }))
 
 

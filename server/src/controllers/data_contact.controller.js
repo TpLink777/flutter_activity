@@ -20,6 +20,27 @@ exports.ViewContacts = async (req, res) => {
     }
 }
 
+exports.viewContactById = async (req, res) => {
+
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) return res.status(400).json({ Errors: errors.array() })
+
+    try {
+        const { id } = req.params
+
+        const data_contact = await DataContact.findByPk(id, {
+            attributes: ['id', 'nombre', 'apellido', 'correo', 'image_url']
+        })
+        if (!data_contact) return res.status(404).json({ message: `el ID proporcionado ${id} no se encuentra en la bd` })
+        console.log('Mensaje de contacto recibido con exito!')
+        res.status(200).json({ message: 'Datos recibidos con exito', data: data_contact })
+
+    } catch (err) {
+        console.log('Error al recibir al contacto', err)
+        res.status(500).json({ message: 'Error interno del servidor', Error: err })
+    }
+}
+
 
 exports.CreatePossibleContact = async (req, res) => {
 
@@ -155,7 +176,15 @@ exports.login = async (req, res) => {
         })
 
         console.log('inicio de seccion exitoso')
-        res.status(200).json({ message: 'Inicio de sesión exitoso', accessToken })
+        res.status(200).json({
+            message: 'Inicio de sesión exitoso', accessToken, data: {
+                id: inicioDeSeccion.id,
+                nombre: inicioDeSeccion.nombre,
+                apellido: inicioDeSeccion.apellido,
+                correo: inicioDeSeccion.correo,
+                image_url: inicioDeSeccion.image_url
+            }
+        })
 
     } catch (err) {
         console.log('Error al iniciar seccion: ', err)
@@ -189,5 +218,8 @@ exports.validarEmail = async (req, res) => {
         res.status(500).json({ err: 'No se pudo verificar el correo.', Error: err });
     }
 }
+
+
+
 
 

@@ -14,12 +14,18 @@ class UserModel {
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
+    
     return UserModel(
-      id: json['id'],
-      nombre: json['nombre'],
-      apellido: json['apellido'],
-      correo: json['correo'],
-      imageUrl: json['image'],
+      id: json['id'] ?? 0,
+      nombre: json['nombre'] ?? '',
+      apellido: json['apellido'] ?? '',
+      correo: json['correo'] ?? '',
+      imageUrl: json['image_url'], 
     );
+  }
+
+  @override
+  String toString() {
+    return 'UserModel(id: $id, nombre: $nombre, imageUrl: $imageUrl)';
   }
 }

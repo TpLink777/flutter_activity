@@ -16,6 +16,16 @@ router.get(
     dataContactController.ViewContacts
 )
 
+router.get(
+    '/findInformationDataById/:id',
+    token.verifyToken,
+    [
+        param('id')
+            .notEmpty().withMessage('El ID no puede estar sin valor')
+            .isInt().withMessage('El ID debe ser un número entero positivo'),
+    ],
+    dataContactController.viewContactById
+)
 
 // ------------------------
 // POST: Crear contacto

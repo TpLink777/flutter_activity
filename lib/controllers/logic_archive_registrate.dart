@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../models/cookieClient.dart';
 
 class LogicArchiveRegister {
   final formkey = GlobalKey<FormState>();
@@ -76,10 +77,9 @@ class LogicArchiveRegister {
     try {
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('http://192.168.1.10:5000/api/activity/add-data-contact'),
+        Uri.parse('http://192.168.1.4:5000/api/activity/add-data-contact'),
       );
 
-      request.headers['Content-Type'] = 'multipart/form-data';
       request.fields['nombre'] = nombreController.text;
       request.fields['apellido'] = apellidoController.text;
       request.fields['correo'] = emailController.text;
@@ -94,8 +94,21 @@ class LogicArchiveRegister {
       var res = await request.send();
       var bodyStr = await res.stream.bytesToString();
       var body = json.decode(bodyStr);
+      if (res.statusCode == 201 || res.statusCode == 200) {
+        final userId = body['data']?['id'] ?? 0;
+        final userName = body['data']?['nombre'] ?? nombreController.text;
+        final userCorreo = body['data']?['correo'] ?? emailController.text;
 
-      return {"status": res.statusCode, "body": body};
+        cookieClient.setUser(id: userId, nombre: userName, correo: userCorreo);
+
+        print("✅ Usuario guardado - ID: $userId, Nombre: $userName");
+      }
+
+      return {
+        "status": res.statusCode,
+        "body": body,
+        "success": res.statusCode == 201 || res.statusCode == 200,
+      };
     } catch (e) {
       return {
         "status": 500,

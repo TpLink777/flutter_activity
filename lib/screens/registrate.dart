@@ -12,11 +12,11 @@ class Registro extends StatefulWidget {
 }
 
 class _RegistroState extends State<Registro> {
-
   final LogicArchiveRegister logic = LogicArchiveRegister();
   File? imagen;
+  bool _isLoading = false;
 
-  void _seleccionarImagen(){
+  void _seleccionarImagen() {
     logic.seleccionarImagen((img) {
       setState(() {
         imagen = img;
@@ -25,50 +25,122 @@ class _RegistroState extends State<Registro> {
   }
 
   Future<void> _registrar() async {
-  if (!logic.formkey.currentState!.validate()) return;
+    // ✅ Valida formulario
+    if (!logic.formkey.currentState!.validate()) {
+      print("❌ Formulario no válido");
+      return;
+    }
 
-  if (!logic.aceptoTerminos) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Debes aceptar los términos")),
-    );
-    return;
+    // ✅ Valida términos
+    if (!logic.aceptoTerminos) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Debes aceptar los términos y condiciones"),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // ✅ Valida imagen
+    if (logic.imagenPerfil == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Por favor selecciona una imagen de perfil"),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      print("🚀 Llamando a registroUsuario()...");
+      var res = await logic.registroUsuario();
+
+      print("📊 Respuesta: $res");
+
+      if (!mounted) return; // Verifica que el widget aún esté montado
+
+      // ✅ Verifica si fue exitoso
+      if (res["success"] == true) {
+
+        // Muestra diálogo de éxito
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            backgroundColor: Colors.white,
+            title: const Text(
+              "¡Registro Exitoso!",
+              style: TextStyle(
+                color: Colors.green,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            content: Text(
+              "Bienvenido ${logic.nombreController.text.toUpperCase()}",
+              style: const TextStyle(fontSize: 16, color: Colors.black),
+            ),
+            actions: [
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                onPressed: () {
+                  Navigator.pop(context); // Cierra diálogo
+                  Navigator.pop(context); // Regresa a login
+                },
+                child: const Text(
+                  "Continuar",
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+        );
+
+        logic.limpiarFormulario();
+      } else {
+        print("❌ Error en respuesta: ${res['body']}");
+
+        // Muestra error
+        String errorMsg = res["body"]?["message"] ?? "Error desconocido";
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error: $errorMsg"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      print("❌ Excepción en _registrar: $e");
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error inesperado: $e"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
-
-  if (logic.imagenPerfil == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Selecciona una imagen")),
-    );
-    return;
-  }
-
-  var res = await logic.registroUsuario();
-
-  if (!mounted) return; // Verificar que el widget aún esté montado
-
-  if (res["status"] == 201) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text("Registro exitoso"),
-        content: Text("Bienvenido ${logic.nombreController.text.toUpperCase()}"),
-      ),
-    );
-    logic.limpiarFormulario();
-  } else {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text("Error: ${res["body"]["message"]}"),
-      ),
-    );
-  }
-}
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFFF5F7),
-      appBar: AppBarWidget.appBarPersonalizado("¡Registrate!", 25, Colors.white, TextAlign.center, FontWeight.bold),
+      appBar: AppBarWidget.appBarPersonalizado(
+        "¡Registrate!",
+        25,
+        Colors.white,
+        TextAlign.center,
+        FontWeight.bold,
+      ),
 
       body: SingleChildScrollView(
         child: Padding(
@@ -81,9 +153,7 @@ class _RegistroState extends State<Registro> {
                   onTap: _seleccionarImagen,
                   child: CircleAvatar(
                     radius: 50,
-                    backgroundImage: imagen != null
-                        ? FileImage(imagen!)
-                        : null,
+                    backgroundImage: imagen != null ? FileImage(imagen!) : null,
                     child: imagen == null
                         ? const Icon(Icons.person, size: 50)
                         : null,
@@ -107,7 +177,10 @@ class _RegistroState extends State<Registro> {
                       children: [
                         TextFormField(
                           controller: logic.nombreController,
-                          decoration: InputStyleWidget.inputDecorationStyle('Ingresa tu nombre', logic.nameValido),
+                          decoration: InputStyleWidget.inputDecorationStyle(
+                            'Ingresa tu nombre',
+                            logic.nameValido,
+                          ),
 
                           onChanged: (value) {
                             setState(() {
@@ -129,11 +202,16 @@ class _RegistroState extends State<Registro> {
                         const SizedBox(height: 20),
                         TextFormField(
                           controller: logic.apellidoController,
-                          decoration: InputStyleWidget.inputDecorationStyle('Ingresa tu apellido', logic.apellidoValido),
+                          decoration: InputStyleWidget.inputDecorationStyle(
+                            'Ingresa tu apellido',
+                            logic.apellidoValido,
+                          ),
 
                           onChanged: (value) {
                             setState(() {
-                              logic.apellidoValido = logic.validarApellido(value);
+                              logic.apellidoValido = logic.validarApellido(
+                                value,
+                              );
                             });
                           },
 
@@ -151,7 +229,10 @@ class _RegistroState extends State<Registro> {
                         const SizedBox(height: 20),
                         TextFormField(
                           controller: logic.emailController,
-                          decoration: InputStyleWidget.inputDecorationStyle('Ingresa tu email', logic.emailValido),
+                          decoration: InputStyleWidget.inputDecorationStyle(
+                            'Ingresa tu email',
+                            logic.emailValido,
+                          ),
 
                           onChanged: (value) {
                             setState(() {
@@ -174,11 +255,15 @@ class _RegistroState extends State<Registro> {
                         const SizedBox(height: 20),
                         TextFormField(
                           controller: logic.passController,
-                          decoration: InputStyleBasic.inputDecorationSimple('Ingresa tu contraseña'),
+                          decoration: InputStyleBasic.inputDecorationSimple(
+                            'Ingresa tu contraseña',
+                          ),
 
                           onChanged: (value) {
                             setState(() {
-                              logic.seguridadPass = logic.evaluarSeguridad(value);
+                              logic.seguridadPass = logic.evaluarSeguridad(
+                                value,
+                              );
                             });
                           },
                           obscureText: true,
@@ -201,8 +286,12 @@ class _RegistroState extends State<Registro> {
                             16,
                           ), // Bordes redondeados
                           child: LinearProgressIndicator(
-                            value: logic.valorSeguridad(logic.passController.text),
-                            color: logic.colorSeguridad(logic.passController.text),
+                            value: logic.valorSeguridad(
+                              logic.passController.text,
+                            ),
+                            color: logic.colorSeguridad(
+                              logic.passController.text,
+                            ),
                             backgroundColor: Colors.grey[200],
                             minHeight: 8, // Altura del indicador
                           ),
@@ -211,7 +300,9 @@ class _RegistroState extends State<Registro> {
                         const SizedBox(height: 20),
                         TextFormField(
                           controller: logic.confirmarPasswordController,
-                          decoration: InputStyleBasic.inputDecorationSimple('Confirma tu contraseña'),
+                          decoration: InputStyleBasic.inputDecorationSimple(
+                            'Confirma tu contraseña',
+                          ),
 
                           obscureText: true,
                           validator: (value) {
@@ -229,7 +320,6 @@ class _RegistroState extends State<Registro> {
                           },
                         ),
 
-                        
                         CheckboxListTile(
                           title: const Text('Aceptar términos y condiciones'),
                           activeColor: Colors.pink,
